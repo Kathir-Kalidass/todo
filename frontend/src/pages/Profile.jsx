@@ -45,12 +45,17 @@ export default function Profile() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="tile-card">
-                <p className="small-label">Microsoft User ID</p>
-                <p className="text-lg font-semibold">{profile.msUserId}</p>
+                <p className="small-label">App Email</p>
+                <p className="text-lg font-semibold">{profile.email}</p>
               </div>
               <div className="tile-card">
-                <p className="small-label">Email</p>
-                <p className="text-lg font-semibold">{profile.email}</p>
+                <p className="small-label">Microsoft User ID</p>
+                <p className="text-lg font-semibold">{profile.msUserId || "Not linked"}</p>
+              </div>
+
+              <div className="tile-card sm:col-span-2">
+                <p className="small-label">Microsoft Email</p>
+                <p className="text-lg font-semibold">{profile.msEmail || "Not linked"}</p>
               </div>
             </div>
           )}

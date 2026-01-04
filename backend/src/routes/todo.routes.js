@@ -36,7 +36,7 @@ router.post("/tasks/:listId", jwtAuth, async (req, res) => {
   const data = await graph.createTask(msAccessToken, req.params.listId, req.body);
 
   await ActivityLog.create({
-    userId: req.user.msUserId,
+    userId: String(req.user.userId),
     action: "CREATE",
     taskTitle: data.data?.title,
     listId: req.params.listId,
@@ -60,7 +60,7 @@ router.patch("/tasks/:listId/:taskId", jwtAuth, async (req, res) => {
   );
 
   await ActivityLog.create({
-    userId: req.user.msUserId,
+    userId: String(req.user.userId),
     action: "UPDATE",
     taskTitle: req.body?.title,
     listId: req.params.listId,
@@ -79,7 +79,7 @@ router.delete("/tasks/:listId/:taskId", jwtAuth, async (req, res) => {
   await graph.deleteTask(msAccessToken, req.params.listId, req.params.taskId);
 
   await ActivityLog.create({
-    userId: req.user.msUserId,
+    userId: String(req.user.userId),
     action: "DELETE",
     listId: req.params.listId,
     taskId: req.params.taskId

@@ -9,7 +9,11 @@ const scopes = ["User.Read", "Tasks.ReadWrite"];
 export default function Login() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const msal = useMemo(() => {
     const tenantId = import.meta.env.VITE_MSAL_TENANT_ID || "common";
@@ -27,8 +31,9 @@ export default function Login() {
     });
   }, []);
 
-  const login = async () => {
+  const connectMicrosoft = async () => {
     setError("");
+    setInfo("");
     setLoading(true);
 
     try {
@@ -45,13 +50,47 @@ export default function Login() {
       const accessToken = tokenResult.accessToken;
       localStorage.setItem("msAccessToken", accessToken);
 
-      const res = await api.post("/auth/login", { accessToken });
+      const jwt = localStorage.getItem("jwt");
+      const res = jwt
+        ? await api.post("/auth/microsoft/link", { accessToken })
+        : await api.post("/auth/login", { accessToken });
+
       localStorage.setItem("jwt", res.data.jwt);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       navigate("/dashboard");
     } catch (e) {
       setError(e?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInLocal = async (mode) => {
+    setError("");
+    setInfo("");
+    setLoading(true);
+
+    try {
+      const emailValue = email.trim().toLowerCase();
+      if (!emailValue || !password) {
+        throw new Error("Email and password are required");
+      }
+
+      const path = mode === "register" ? "/auth/register" : "/auth/login-local";
+      const res = await api.post(path, { email: emailValue, password });
+
+      localStorage.setItem("jwt", res.data.jwt);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      // Microsoft connection is required to read/write To Do tasks.
+      if (localStorage.getItem("msAccessToken")) {
+        navigate("/dashboard");
+      } else {
+        setInfo("Signed in. Now click 'Sign in with Microsoft' to sync tasks.");
+      }
+    } catch (e) {
+      setError(e?.response?.data?.message || e?.message || "Sign in failed");
     } finally {
       setLoading(false);
     }
@@ -70,7 +109,7 @@ export default function Login() {
               A brighter way to manage your tasks with
               <span className="flow-text"> Microsoft To Do</span>
             </h1>
-            <p className="max-w-xl text-lg text-slate-200/85">
+            <p className="max-w-xl text-lg text-slate-700/90">
               Glide into your tasks with a colorful, animated workspace. We keep your data secure
               through Microsoft sign-in while storing only the essentials for mapping and activity
               logs.
@@ -94,7 +133,7 @@ export default function Login() {
             <div className="space-y-2">
               <p className="pill w-fit">Sign in</p>
               <h2 className="text-2xl font-semibold">Microsoft account</h2>
-              <p className="text-sm text-slate-200/75">
+              <p className="small-label">
                 Use your Microsoft credentials to continue. Password rules are enforced by Microsoft;
                 we never capture your password.
               </p>
@@ -106,7 +145,48 @@ export default function Login() {
               </div>
             ) : null}
 
-            <button className="btn-primary mt-6 w-full" onClick={login} disabled={loading}>
+            {info ? (
+              <div className="mt-4 rounded-lg border border-slate-900/10 bg-white/60 p-3 text-sm text-slate-700">
+                {info}
+              </div>
+            ) : null}
+
+            <div className="mt-6 space-y-3">
+              <input
+                className="tile-card w-full text-base text-slate-900 placeholder:text-slate-500"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+              <input
+                className="tile-card w-full text-base text-slate-900 placeholder:text-slate-500"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                autoComplete="current-password"
+              />
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                  className="btn-primary"
+                  onClick={() => signInLocal("login")}
+                  disabled={loading}
+                >
+                  <span>{loading ? "Signing in..." : "Sign in"}</span>
+                </button>
+                <button
+                  className="btn-ghost"
+                  onClick={() => signInLocal("register")}
+                  disabled={loading}
+                >
+                  <span>{loading ? "Creating..." : "Create account"}</span>
+                </button>
+              </div>
+            </div>
+
+            <button className="btn-primary mt-6 w-full" onClick={connectMicrosoft} disabled={loading}>
               <span>{loading ? "Opening Microsoft login..." : "Sign in with Microsoft"}</span>
             </button>
 

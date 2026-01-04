@@ -4,14 +4,23 @@ import sequelize from "../config/db.js";
 const User = sequelize.define(
   "User",
   {
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true
+    },
+    passwordHash: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     msUserId: {
       type: DataTypes.STRING,
       unique: true,
-      allowNull: false
+      allowNull: true
     },
-    email: {
+    msEmail: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     }
   },
   {

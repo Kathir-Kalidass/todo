@@ -29,7 +29,7 @@ const port = Number(process.env.PORT || 5000);
 (async () => {
   try {
     await sequelize.authenticate();
-    await sequelize.sync();
+    await sequelize.sync({ alter: process.env.DB_SYNC_ALTER === "true" });
     console.log("PostgreSQL connected");
 
     app.listen(port, () => {

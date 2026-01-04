@@ -7,7 +7,15 @@ import Profile from "../pages/Profile.jsx";
 
 function RequireAuth({ children }) {
   const jwt = localStorage.getItem("jwt");
-  if (!jwt) return <Navigate to="/login" replace />;
+  const msAccessToken = localStorage.getItem("msAccessToken");
+  if (!jwt || !msAccessToken) return <Navigate to="/login" replace />;
+  return children;
+}
+
+function RedirectIfAuthed({ children }) {
+  const jwt = localStorage.getItem("jwt");
+  const msAccessToken = localStorage.getItem("msAccessToken");
+  if (jwt && msAccessToken) return <Navigate to="/dashboard" replace />;
   return children;
 }
 
@@ -15,8 +23,22 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<Login />} />
+        <Route
+          path="/"
+          element={
+            <RedirectIfAuthed>
+              <Navigate to="/login" replace />
+            </RedirectIfAuthed>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <RedirectIfAuthed>
+              <Login />
+            </RedirectIfAuthed>
+          }
+        />
 
         <Route
           path="/dashboard"
