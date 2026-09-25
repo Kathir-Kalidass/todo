@@ -22,6 +22,7 @@ services:
       - ./backend/.env
     environment:
       - CHOKIDAR_USEPOLLING=1
+      - DB_SYNC_ALTER=true
     depends_on:
       - postgres
     ports:
